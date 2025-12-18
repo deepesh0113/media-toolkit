@@ -15,6 +15,7 @@
     <link rel="icon" type="image/png" href="media_toolkit.png">
 
 </head>
+
 <body>
 
     <div class="container">
@@ -51,7 +52,7 @@
                     <li>Export clean and trimmed audio</li>
                 </ul>
 
-                <input type="file" id="audioFile" accept="audio/*">
+                <input type="file" id="audioFile" accept="audio/*,video/mp4">
                 <div id="waveform"></div>
 
                 <div class="controls">
@@ -155,8 +156,8 @@
                     <li>Preserves signal quality</li>
                 </ul>
 
-                <input type="file" id="merge1" accept="audio/*">
-                <input type="file" id="merge2" accept="audio/*">
+                <input type="file" id="merge1" accept="audio/*,video/mp4">
+                <input type="file" id="merge2" accept="audio/*,video/mp4">
                 <button onclick="mergeAudios()">Merge & Download</button>
             </div>
 

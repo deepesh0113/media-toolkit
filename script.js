@@ -12,23 +12,30 @@ wavesurfer = WaveSurfer.create({
 
 audioFileInput = document.getElementById("audioFile");
 
-audioFileInput.addEventListener("change", e => {
-    audioFile = e.target.files[0];
-    if (!audioFile) return;
+audioFileInput.addEventListener("change", async e => {
+  audioFile = e.target.files[0];
+  if (!audioFile) return;
 
-    wavesurfer.load(URL.createObjectURL(audioFile));
-    wavesurfer.once("ready", () => {
-        wavesurfer.clearRegions();
-        region = wavesurfer.addRegion({
-            start: 0,
-            end: Math.min(5, wavesurfer.getDuration()),
-            color: "rgba(56,189,248,0.25)",
-            drag: true,
-            resize: true
-        });
-        updateAudioInfo();
+  const arrayBuffer = await audioFile.arrayBuffer();
+
+  const ctx = new AudioContext();
+  const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+  wavesurfer.loadDecodedBuffer(audioBuffer);
+
+  wavesurfer.once("ready", () => {
+    wavesurfer.clearRegions();
+    region = wavesurfer.addRegion({
+      start: 0,
+      end: Math.min(5, wavesurfer.getDuration()),
+      color: "rgba(56,189,248,0.25)",
+      drag: true,
+      resize: true
     });
+    updateAudioInfo();
+  });
 });
+
 
 wavesurfer.on("region-updated", updateAudioInfo);
 
@@ -95,22 +102,39 @@ function cutVideo() {
 
 /* ================= MERGE AUDIO ================= */
 async function mergeAudios() {
-    const ctx = new AudioContext();
-    const b1 = await ctx.decodeAudioData(await merge1.files[0].arrayBuffer());
-    const b2 = await ctx.decodeAudioData(await merge2.files[0].arrayBuffer());
+  if (!merge1.files[0] || !merge2.files[0]) {
+    alert("Please select two audio or video files");
+    return;
+  }
 
-    const out = ctx.createBuffer(
-        b1.numberOfChannels,
-        b1.length + b2.length,
-        b1.sampleRate
-    );
+  const ctx = new AudioContext();
 
-    for (let ch = 0; ch < b1.numberOfChannels; ch++) {
-        out.getChannelData(ch).set(b1.getChannelData(ch), 0);
-        out.getChannelData(ch).set(b2.getChannelData(ch), b1.length);
+  const b1 = await ctx.decodeAudioData(
+    await merge1.files[0].arrayBuffer()
+  );
+
+  const b2 = await ctx.decodeAudioData(
+    await merge2.files[0].arrayBuffer()
+  );
+
+  const out = ctx.createBuffer(
+    Math.max(b1.numberOfChannels, b2.numberOfChannels),
+    b1.length + b2.length,
+    b1.sampleRate
+  );
+
+  for (let ch = 0; ch < out.numberOfChannels; ch++) {
+    if (b1.getChannelData(ch)) {
+      out.getChannelData(ch).set(b1.getChannelData(ch), 0);
     }
-    exportWav(out, "merged-audio.wav");
+    if (b2.getChannelData(ch)) {
+      out.getChannelData(ch).set(b2.getChannelData(ch), b1.length);
+    }
+  }
+
+  exportWav(out, "merged-audio.wav");
 }
+
 
 /* ================= HELPERS ================= */
 function download(blob, name) {
