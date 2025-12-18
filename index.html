@@ -39,47 +39,74 @@
         <!-- ================= AUDIO TAB ================= -->
         <section id="audioTab" class="tabContent active">
 
+            <!-- ================= AUDIO SIGNAL PROCESSING ================= -->
             <div class="card">
                 <h2>Audio Signal Processing</h2>
                 <p class="example">
-                    This module enables waveform-level inspection and precise temporal
-                    segmentation of audio signals directly within the browser.
+                    Play audio, inspect the timeline, define start and end time,
+                    and extract required audio segments directly in the browser.
                 </p>
 
                 <ul class="points">
-                    <li>Visual waveform analysis</li>
-                    <li>Drag-select region of interest</li>
-                    <li>Export clean and trimmed audio</li>
-                    <li>Supported formats: MP3, WAV, MP4, WebM</li>
+                    <li>Waveform & timeline visualization</li>
+                    <li>Manual time-based audio cutting</li>
+                    <li>Download cut segment or remaining audio</li>
+                    <li>Supported formats: MP3, WAV, M4A, OGG, OPUS (WhatsApp audio)</li>
                 </ul>
 
+                <!-- AUDIO INPUT -->
                 <input type="file" id="audioFile" accept="audio/*,video/*">
+
+                <!-- WAVEFORM -->
                 <div id="waveform"></div>
 
+                <!-- PLAY CONTROL -->
                 <div class="controls">
                     <button onclick="playPause()">Play / Pause</button>
-                    <button onclick="cutRegion()">Extract Segment</button>
-                    <button onclick="fadeInOut()">Apply Fade</button>
                 </div>
 
-                <div class="info">
-                    <span>Start: <b id="aStart">0.00</b>s</span>
-                    <span>End: <b id="aEnd">0.00</b>s</span>
-                    <span>Length: <b id="aDur">0.00</b>s</span>
+                <!-- TIME INPUTS -->
+                <div class="grid">
+                    <div>
+                        <label>Start Time (seconds)</label>
+                        <input type="number" id="cutStart" step="0.1" value="0">
+                    </div>
+                    <div>
+                        <label>End Time (seconds)</label>
+                        <input type="number" id="cutEnd" step="0.1">
+                    </div>
                 </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="controls">
+                    <button onclick="downloadCutPart()">Download Cut Part</button>
+                    <button onclick="downloadRemainingPart()">Download Remaining Audio</button>
+                </div>
+
+                <!-- INFO -->
+                <!-- INFO -->
+                <div class="info">
+                    <span>Current Time: <b id="currentTime">0.00</b>s</span>
+                    <span>Total Duration: <b id="audioDuration">0.00</b>s</span>
+                </div>
+
             </div>
 
+            <!-- ================= DATASET MANAGEMENT ================= -->
             <div class="card subtle">
                 <h3>Audio Dataset Management</h3>
                 <p class="example">
-                    Rename audio files to maintain consistent and meaningful naming
-                    conventions for experiments, lectures, or archives.
+                    Preserve original audio while applying meaningful filenames
+                    for datasets, lectures, and archival storage.
                 </p>
+
                 <input type="text" id="renameAudio" placeholder="e.g. dsp-lecture-01">
-                <button onclick="downloadRenamedAudio()">Download Renamed File</button>
+                <button onclick="downloadRenamedAudio()">Download Original with New Name</button>
             </div>
 
         </section>
+
+
 
         <!-- ================= VIDEO TAB ================= -->
         <section id="videoTab" class="tabContent">

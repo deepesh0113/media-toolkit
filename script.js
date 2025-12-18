@@ -1,61 +1,80 @@
-/* ================= AUDIO ================= */
-let wavesurfer, region, audioFile;
+/* ================= AUDIO SIGNAL PROCESSING ================= */
 
-wavesurfer = WaveSurfer.create({
-    container: "#waveform",
-    waveColor: "#334155",
-    progressColor: "#38bdf8",
-    cursorColor: "#22d3ee",
-    height: 140,
-    plugins: [WaveSurfer.Regions.create()]
-});
+let wavesurfer;
+let audioFile;
+let decodedBuffer;
 
-audioFileInput = document.getElementById("audioFile");
+document.addEventListener("DOMContentLoaded", () => {
 
-audioFileInput.addEventListener("change", async e => {
-    audioFile = e.target.files[0];
-    if (!audioFile) return;
+    wavesurfer = WaveSurfer.create({
+        container: "#waveform",
+        waveColor: "#334155",
+        progressColor: "#38bdf8",
+        cursorColor: "#22d3ee",
+        height: 140
+    });
 
-    const arrayBuffer = await audioFile.arrayBuffer();
+    const audioInput = document.getElementById("audioFile");
 
-    const ctx = new AudioContext();
-    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    audioInput.addEventListener("change", async (e) => {
+        audioFile = e.target.files[0];
+        if (!audioFile) return;
 
-    wavesurfer.loadDecodedBuffer(audioBuffer);
+        const fileURL = URL.createObjectURL(audioFile);
 
-    wavesurfer.once("ready", () => {
-        wavesurfer.clearRegions();
-        region = wavesurfer.addRegion({
-            start: 0,
-            end: Math.min(5, wavesurfer.getDuration()),
-            color: "rgba(56,189,248,0.25)",
-            drag: true,
-            resize: true
-        });
-        updateAudioInfo();
+        try {
+            const ctx = new AudioContext();
+            const arrayBuffer = await audioFile.arrayBuffer();
+            decodedBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+            wavesurfer.loadDecodedBuffer(decodedBuffer);
+            audioDuration.textContent = decodedBuffer.duration.toFixed(2);
+            cutEnd.value = decodedBuffer.duration.toFixed(2);
+
+        } catch {
+            // WhatsApp-safe fallback
+            wavesurfer.load(fileURL);
+
+            wavesurfer.once("ready", () => {
+                audioDuration.textContent = wavesurfer.getDuration().toFixed(2);
+                cutEnd.value = wavesurfer.getDuration().toFixed(2);
+            });
+        }
+    });
+    wavesurfer.on("audioprocess", () => {
+        currentTime.textContent = wavesurfer.getCurrentTime().toFixed(2);
+    });
+
+    wavesurfer.on("seek", () => {
+        currentTime.textContent = wavesurfer.getCurrentTime().toFixed(2);
+    });
+
+    wavesurfer.on("finish", () => {
+        currentTime.textContent = audioDuration.textContent;
     });
 });
 
-
-wavesurfer.on("region-updated", updateAudioInfo);
-
-function updateAudioInfo() {
-    if (!region) return;
-    aStart.textContent = region.start.toFixed(2);
-    aEnd.textContent = region.end.toFixed(2);
-    aDur.textContent = (region.end - region.start).toFixed(2);
-}
-
 function playPause() {
+    if (!wavesurfer) return;
     wavesurfer.playPause();
 }
 
-async function cutRegion() {
-    const ctx = new AudioContext();
-    const buffer = await ctx.decodeAudioData(await audioFile.arrayBuffer());
+/* ================= CUT FUNCTIONS ================= */
 
-    const s = region.start * buffer.sampleRate;
-    const e = region.end * buffer.sampleRate;
+async function downloadCutPart() {
+    if (!audioFile) return alert("Upload audio first");
+
+    const start = parseFloat(cutStart.value);
+    const end = parseFloat(cutEnd.value);
+
+    if (start >= end) return alert("Invalid start/end time");
+
+    const ctx = new AudioContext();
+    const buffer = decodedBuffer ||
+        await ctx.decodeAudioData(await audioFile.arrayBuffer());
+
+    const s = Math.floor(start * buffer.sampleRate);
+    const e = Math.floor(end * buffer.sampleRate);
 
     const out = ctx.createBuffer(
         buffer.numberOfChannels,
@@ -68,18 +87,43 @@ async function cutRegion() {
             buffer.getChannelData(ch).slice(s, e)
         );
     }
-    exportWav(out, "cut-audio.wav");
+
+    exportWav(out, "cut-part.wav");
 }
 
-function fadeInOut() {
-    alert("fade applied during export (basic linear fade)");
+async function downloadRemainingPart() {
+    if (!audioFile) return alert("Upload audio first");
+
+    const start = parseFloat(cutStart.value);
+    const end = parseFloat(cutEnd.value);
+
+    if (start >= end) return alert("Invalid start/end time");
+
+    const ctx = new AudioContext();
+    const buffer = decodedBuffer ||
+        await ctx.decodeAudioData(await audioFile.arrayBuffer());
+
+    const s = Math.floor(start * buffer.sampleRate);
+    const e = Math.floor(end * buffer.sampleRate);
+
+    const out = ctx.createBuffer(
+        buffer.numberOfChannels,
+        buffer.length - (e - s),
+        buffer.sampleRate
+    );
+
+    for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+        const channel = out.getChannelData(ch);
+        channel.set(buffer.getChannelData(ch).slice(0, s), 0);
+        channel.set(
+            buffer.getChannelData(ch).slice(e),
+            s
+        );
+    }
+
+    exportWav(out, "remaining-audio.wav");
 }
 
-function downloadRenamedAudio() {
-    if (!audioFile) return;
-    const name = renameAudio.value || "audio";
-    download(new Blob([audioFile], { type: audioFile.type }), name + ".mp3");
-}
 
 /* ================= VIDEO ================= */
 const videoInput = document.getElementById("videoFile");
