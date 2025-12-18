@@ -52,7 +52,7 @@
                     <li>Export clean and trimmed audio</li>
                 </ul>
 
-                <input type="file" id="audioFile" accept="audio/*,video/mp4">
+                <input type="file" id="audioFile" accept="audio/*,video/*">
                 <div id="waveform"></div>
 
                 <div class="controls">
@@ -160,8 +160,8 @@
                     <h3>1. Audio + Audio Merge</h3>
                     <p class="mergeHint">Combine two audio files into one continuous waveform</p>
 
-                    <input type="file" id="aa1" accept="audio/*,video/mp4">
-                    <input type="file" id="aa2" accept="audio/*,video/mp4">
+                    <input type="file" id="aa1" accept="audio/*,video/*">
+                    <input type="file" id="aa2" accept="audio/*,video/*">
 
                     <button onclick="mergeAudioAudio()">Merge Audio & Download</button>
                 </div>
@@ -190,7 +190,7 @@
                     </p>
 
                     <input type="file" id="avVideo" accept="video/*">
-                    <input type="file" id="avAudio" accept="audio/*,video/mp4">
+                    <input type="file" id="avAudio" accept="audio/*,video/*">
 
                     <button onclick="mergeAudioVideo()">Preview Audio + Video</button>
                 </div>
