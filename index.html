@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Media Toolkit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- WaveSurfer -->
+  <script src="https://unpkg.com/wavesurfer.js@7"></script>
+  <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+<header class="hero">
+  <h1>Media Toolkit</h1>
+  <p>Precision audio & video processing • runs entirely in your browser</p>
+</header>
+
+<section class="card">
+  <h2>Audio Processing Lab</h2>
+  <p class="example">
+    Upload → visualize waveform → isolate section → export refined audio
+  </p>
+
+  <input type="file" id="audioFile" accept="audio/*">
+  <div id="waveform"></div>
+
+  <div class="controls">
+    <button onclick="playPause()">Play / Pause</button>
+    <button onclick="cutRegion()">Extract Segment</button>
+    <button onclick="fadeInOut()">Apply Fade</button>
+  </div>
+
+  <div class="info">
+    <span>Start: <b id="aStart">0.00</b>s</span>
+    <span>End: <b id="aEnd">0.00</b>s</span>
+    <span>Length: <b id="aDur">0.00</b>s</span>
+  </div>
+</section>
+
+<section class="card subtle">
+  <h3>Audio File Renaming</h3>
+  <p class="example">Maintain structured naming for datasets & lectures</p>
+  <input type="text" id="renameAudio" placeholder="e.g. signal-processing-lecture-01">
+  <button onclick="downloadRenamedAudio()">Download Renamed File</button>
+</section>
+
+<section class="card">
+  <h2>Video Processing Module</h2>
+  <p class="example">
+    Define temporal boundaries → preview → export trimmed clip
+  </p>
+
+  <input type="file" id="videoFile" accept="video/*">
+  <video id="videoPlayer" controls></video>
+
+  <div class="grid">
+    <div>
+      <label>Start Time (s)</label>
+      <input type="number" id="vStart" step="0.1" value="0">
+    </div>
+    <div>
+      <label>End Time (s)</label>
+      <input type="number" id="vEnd" step="0.1">
+    </div>
+  </div>
+
+  <div class="controls">
+    <button onclick="previewVideo()">Preview Segment</button>
+    <button onclick="cutVideo()">Export Video</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Audio Signal Merge</h2>
+  <p class="example">
+    Combine multiple audio segments into a unified signal
+  </p>
+
+  <input type="file" id="merge1" accept="audio/*">
+  <input type="file" id="merge2" accept="audio/*">
+  <button onclick="mergeAudios()">Merge & Download</button>
+</section>
+
+<footer>
+  Client-side execution • zero uploads • privacy-preserving design
+</footer>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
