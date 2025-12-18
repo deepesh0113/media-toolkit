@@ -13,27 +13,27 @@ wavesurfer = WaveSurfer.create({
 audioFileInput = document.getElementById("audioFile");
 
 audioFileInput.addEventListener("change", async e => {
-  audioFile = e.target.files[0];
-  if (!audioFile) return;
+    audioFile = e.target.files[0];
+    if (!audioFile) return;
 
-  const arrayBuffer = await audioFile.arrayBuffer();
+    const arrayBuffer = await audioFile.arrayBuffer();
 
-  const ctx = new AudioContext();
-  const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    const ctx = new AudioContext();
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
 
-  wavesurfer.loadDecodedBuffer(audioBuffer);
+    wavesurfer.loadDecodedBuffer(audioBuffer);
 
-  wavesurfer.once("ready", () => {
-    wavesurfer.clearRegions();
-    region = wavesurfer.addRegion({
-      start: 0,
-      end: Math.min(5, wavesurfer.getDuration()),
-      color: "rgba(56,189,248,0.25)",
-      drag: true,
-      resize: true
+    wavesurfer.once("ready", () => {
+        wavesurfer.clearRegions();
+        region = wavesurfer.addRegion({
+            start: 0,
+            end: Math.min(5, wavesurfer.getDuration()),
+            color: "rgba(56,189,248,0.25)",
+            drag: true,
+            resize: true
+        });
+        updateAudioInfo();
     });
-    updateAudioInfo();
-  });
 });
 
 
@@ -99,42 +99,93 @@ function previewVideo() {
 function cutVideo() {
     alert("video trimming in browser is preview-safe; download requires ffmpeg.wasm (advanced upgrade)");
 }
+/* ================= MERGE FUNCTIONS ================= */
 
-/* ================= MERGE AUDIO ================= */
-async function mergeAudios() {
-  if (!merge1.files[0] || !merge2.files[0]) {
-    alert("Please select two audio or video files");
-    return;
-  }
-
-  const ctx = new AudioContext();
-
-  const b1 = await ctx.decodeAudioData(
-    await merge1.files[0].arrayBuffer()
-  );
-
-  const b2 = await ctx.decodeAudioData(
-    await merge2.files[0].arrayBuffer()
-  );
-
-  const out = ctx.createBuffer(
-    Math.max(b1.numberOfChannels, b2.numberOfChannels),
-    b1.length + b2.length,
-    b1.sampleRate
-  );
-
-  for (let ch = 0; ch < out.numberOfChannels; ch++) {
-    if (b1.getChannelData(ch)) {
-      out.getChannelData(ch).set(b1.getChannelData(ch), 0);
+/* -------- 1. AUDIO + AUDIO (REAL DOWNLOAD) -------- */
+async function mergeAudioAudio() {
+    if (!aa1.files[0] || !aa2.files[0]) {
+        alert("Select two audio files");
+        return;
     }
-    if (b2.getChannelData(ch)) {
-      out.getChannelData(ch).set(b2.getChannelData(ch), b1.length);
-    }
-  }
 
-  exportWav(out, "merged-audio.wav");
+    const ctx = new AudioContext();
+
+    const b1 = await ctx.decodeAudioData(await aa1.files[0].arrayBuffer());
+    const b2 = await ctx.decodeAudioData(await aa2.files[0].arrayBuffer());
+
+    const out = ctx.createBuffer(
+        Math.max(b1.numberOfChannels, b2.numberOfChannels),
+        b1.length + b2.length,
+        b1.sampleRate
+    );
+
+    for (let ch = 0; ch < out.numberOfChannels; ch++) {
+        if (b1.getChannelData(ch))
+            out.getChannelData(ch).set(b1.getChannelData(ch), 0);
+
+        if (b2.getChannelData(ch))
+            out.getChannelData(ch).set(b2.getChannelData(ch), b1.length);
+    }
+
+    exportWav(out, "audio-merged.wav");
 }
 
+/* -------- 2. VIDEO + VIDEO (PREVIEW SAFE) -------- */
+function mergeVideoVideo() {
+    if (!vv1.files[0] || !vv2.files[0]) {
+        alert("Select two videos");
+        return;
+    }
+
+    const v = document.getElementById("videoMergePreview");
+    v.style.display = "block";
+
+    const v1URL = URL.createObjectURL(vv1.files[0]);
+    const v2URL = URL.createObjectURL(vv2.files[0]);
+
+    v.src = v1URL;
+    v.play();
+
+    v.onended = () => {
+        v.src = v2URL;
+        v.play();
+    };
+
+    alert(
+        "Preview mode:\n\n" +
+        "Videos play sequentially.\n" +
+        "Permanent export requires ffmpeg.wasm."
+    );
+}
+
+/* -------- 3. AUDIO + VIDEO (SYNC PREVIEW) -------- */
+function mergeAudioVideo() {
+    if (!avVideo.files[0] || !avAudio.files[0]) {
+        alert("Select both video and audio");
+        return;
+    }
+
+    const video = document.createElement("video");
+    const audio = document.createElement("audio");
+
+    video.src = URL.createObjectURL(avVideo.files[0]);
+    audio.src = URL.createObjectURL(avAudio.files[0]);
+
+    video.controls = true;
+    video.style.width = "100%";
+    video.style.marginTop = "12px";
+
+    video.addEventListener("play", () => audio.play());
+    video.addEventListener("pause", () => audio.pause());
+    video.addEventListener("seeked", () => (audio.currentTime = video.currentTime));
+
+    document.querySelector("#mergeTab .card").appendChild(video);
+
+    alert(
+        "Audio replaced for preview.\n\n" +
+        "For final export, advanced processing is required."
+    );
+}
 
 /* ================= HELPERS ================= */
 function download(blob, name) {

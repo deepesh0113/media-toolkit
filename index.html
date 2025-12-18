@@ -144,24 +144,61 @@
         <section id="mergeTab" class="tabContent">
 
             <div class="card">
-                <h2>Audio Signal Fusion</h2>
+                <h2>Media Fusion Lab</h2>
                 <p class="example">
-                    Combine multiple audio signals into a single continuous waveform.
-                    Commonly used for lecture parts, interviews, or experiments.
+                    Merge and synchronize audio and video signals for modern multimedia workflows.
                 </p>
 
                 <ul class="points">
-                    <li>Sample-accurate merging</li>
-                    <li>No recompression</li>
-                    <li>Preserves signal quality</li>
+                    <li>Audio concatenation (download supported)</li>
+                    <li>Video stream synchronization (preview-safe)</li>
+                    <li>Audio replacement for video (experimental)</li>
                 </ul>
 
-                <input type="file" id="merge1" accept="audio/*,video/mp4">
-                <input type="file" id="merge2" accept="audio/*,video/mp4">
-                <button onclick="mergeAudios()">Merge & Download</button>
+                <!-- ========= OPTION 1: AUDIO + AUDIO ========= -->
+                <div class="mergeBlock">
+                    <h3>1. Audio + Audio Merge</h3>
+                    <p class="mergeHint">Combine two audio files into one continuous waveform</p>
+
+                    <input type="file" id="aa1" accept="audio/*,video/mp4">
+                    <input type="file" id="aa2" accept="audio/*,video/mp4">
+
+                    <button onclick="mergeAudioAudio()">Merge Audio & Download</button>
+                </div>
+
+                <!-- ========= OPTION 2: VIDEO + VIDEO ========= -->
+                <div class="mergeBlock">
+                    <h3>2. Video + Video Merge</h3>
+                    <p class="mergeHint">
+                        Sequential playback preview of two videos.
+                        Export requires advanced processing.
+                    </p>
+
+                    <input type="file" id="vv1" accept="video/*">
+                    <input type="file" id="vv2" accept="video/*">
+
+                    <button onclick="mergeVideoVideo()">Preview Merged Video</button>
+
+                    <video id="videoMergePreview" controls style="display:none;"></video>
+                </div>
+
+                <!-- ========= OPTION 3: AUDIO + VIDEO ========= -->
+                <div class="mergeBlock">
+                    <h3>3. Audio + Video Merge</h3>
+                    <p class="mergeHint">
+                        Replace video audio with external audio (sync preview).
+                    </p>
+
+                    <input type="file" id="avVideo" accept="video/*">
+                    <input type="file" id="avAudio" accept="audio/*,video/mp4">
+
+                    <button onclick="mergeAudioVideo()">Preview Audio + Video</button>
+                </div>
+
             </div>
 
         </section>
+
 
         <footer>
             Fully client-side • zero data uploads • privacy-first architecture
